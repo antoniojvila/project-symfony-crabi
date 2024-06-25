@@ -24,6 +24,7 @@ class BlackListValidationValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, BlackListValidation::class);
         }
 
+        
         $user = $this->context->getObject();
         if (!$user instanceof User) {
             throw new UnexpectedValueException($user, User::class);
@@ -34,18 +35,15 @@ class BlackListValidationValidator extends ConstraintValidator
             'last_name' => $user->getLastName(),
             'email' => $user->getEmail(),
         ];
-
         $response = $this->httpClient->request('POST', 'http://44.210.144.170/check-blacklist/', [
             'json' => $data,
         ]);
-
-
         if ($response->getStatusCode() !== 201) {
             $this->context->buildViolation($constraint->message)
-                ->addViolation();
+            ->addViolation();
             return;
         }
-
+        
         $responseData = $response->toArray(false);
         
         if ($responseData['is_in_blacklist']) {

@@ -2,40 +2,24 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
+use App\DTO\UserDTO;
+use App\Mapper\UserMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RegistrationController extends AbstractController
 {
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
-    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
+    public function register(Request $request, SerializerInterface $serializer, EntityManagerInterface $entityManager, ValidatorInterface $validator, UserMapper $userMapper): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        if (!$data) {
-            return new JsonResponse(['message' => 'Invalid data'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $user = new User();
-        $user->setEmail($data['email']);
-        $user->setPassword(
-            $passwordHasher->hashPassword(
-                $user,
-                $data['password']
-            )
-        );
-        $user->setFirstName($data['first_name']);
-        $user->setLastName($data['last_name']);
-
+        $userDTO = $serializer->deserialize($request->getContent(), UserDTO::class, 'json', ['groups' => 'user:write']);
+        $user = $userMapper->dtoToEntity($userDTO);
         $errors = $validator->validate($user);
-
         if (count($errors) > 0) {
             $errorsArray = [];
             foreach ($errors as $error) {
@@ -48,6 +32,6 @@ class RegistrationController extends AbstractController
         $entityManager->persist($user);
         $entityManager->flush();
 
-        return new JsonResponse(['message' => 'User created'], Response::HTTP_CREATED);
+        return new JsonResponse(['message' => 'User created'], JsonResponse::HTTP_CREATED);
     }
 }
