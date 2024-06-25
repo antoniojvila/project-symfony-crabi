@@ -22,8 +22,8 @@ RUN docker-php-ext-configure intl
 RUN docker-php-ext-configure gd --with-jpeg --with-freetype
 RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql intl gd zip
 
-# Install APCU
-RUN pecl install apcu-5.1.22 && docker-php-ext-enable apcu
+# Install APCU (latest version)
+RUN pecl install apcu && docker-php-ext-enable apcu
 RUN echo "extension=apcu.so" > /usr/local/etc/php/php.ini
 RUN echo "apc.enable_cli=1" >> /usr/local/etc/php/php.ini
 RUN echo "apc.enable=1" >> /usr/local/etc/php/php.ini
@@ -38,9 +38,19 @@ RUN mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Install lexik/jwt-authentication-bundle
-RUN composer require "lexik/jwt-authentication-bundle"
-
 # Set working directory
 WORKDIR /var/www/html
 
+# Install lexik/jwt-authentication-bundle after setting the working directory
+RUN composer require "lexik/jwt-authentication-bundle"
+
+# Copy application code
+COPY . .
+
+# Ensure the document root is correctly set
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# Expose port 80 and start Apache server
+EXPOSE 80
+CMD ["apache2-foreground"]
