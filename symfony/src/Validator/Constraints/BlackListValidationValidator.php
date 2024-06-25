@@ -6,16 +6,16 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\UnexpectedValueException;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Entity\User;
+use App\Service\BlackListService;
 
 class BlackListValidationValidator extends ConstraintValidator
 {
-    private $httpClient;
+    private $blackListService;
 
-    public function __construct(HttpClientInterface $httpClient)
+    public function __construct(BlackListService $blackListService)
     {
-        $this->httpClient = $httpClient;
+        $this->blackListService = $blackListService;
     }
 
     public function validate($value, Constraint $constraint)
@@ -24,7 +24,6 @@ class BlackListValidationValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, BlackListValidation::class);
         }
 
-        
         $user = $this->context->getObject();
         if (!$user instanceof User) {
             throw new UnexpectedValueException($user, User::class);
@@ -35,19 +34,16 @@ class BlackListValidationValidator extends ConstraintValidator
             'last_name' => $user->getLastName(),
             'email' => $user->getEmail(),
         ];
-        $response = $this->httpClient->request('POST', 'http://44.210.144.170/check-blacklist/', [
-            'json' => $data,
-        ]);
-        if ($response->getStatusCode() !== 201) {
-            $this->context->buildViolation($constraint->message)
-            ->addViolation();
-            return;
-        }
-        
-        $responseData = $response->toArray(false);
-        
-        if ($responseData['is_in_blacklist']) {
-            $this->context->buildViolation($constraint->message)
+
+        try {
+            $isInBlackList = $this->blackListService->checkBlackList($data);
+
+            if ($isInBlackList) {
+                $this->context->buildViolation($constraint->message)
+                    ->addViolation();
+            }
+        } catch (\Exception $e) {
+            $this->context->buildViolation('There was an error validating the blacklist.')
                 ->addViolation();
         }
     }

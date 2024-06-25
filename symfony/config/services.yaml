@@ -23,9 +23,9 @@ services:
     Symfony\Contracts\HttpClient\HttpClientInterface: '@http_client'
 
     App\Validator\Constraints\BlackListValidationValidator:
-        arguments:
-            $httpClient: '@http_client'
         tags: ['validator.constraint_validator']
+        arguments:
+            $blackListService: '@App\Service\BlackListService'
     
     App\Mapper\UserMapper:
         arguments:
@@ -47,6 +47,7 @@ services:
     App\Repository\UserRepository:
         arguments:
             $baseRepository: '@App\Repository\BaseRepository'
-
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    
+    App\Service\BlackListService:
+        arguments:
+            $httpClient: '@http_client'
