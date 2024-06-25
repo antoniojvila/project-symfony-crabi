@@ -39,6 +39,14 @@ services:
         arguments:
             $validator: '@validator'
             $userRepository: '@App\Repository\UserRepository'
+    
+    App\Repository\BaseRepository:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+
+    App\Repository\UserRepository:
+        arguments:
+            $baseRepository: '@App\Repository\BaseRepository'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

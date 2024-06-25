@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\DTO\UserDTO;
+use App\Repository\UserRepository;
 use App\Mapper\UserMapper;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,6 +16,14 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RegistrationController extends AbstractController
 {
+
+    private $userRepository;
+
+    public function __construct(UserRepository $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
     public function register(Request $request, SerializerInterface $serializer, EntityManagerInterface $entityManager, ValidatorInterface $validator, UserMapper $userMapper): JsonResponse
     {
@@ -36,8 +45,7 @@ class RegistrationController extends AbstractController
             return new JsonResponse(['errors' => $errorsArray], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $entityManager->persist($user);
-        $entityManager->flush();
+        $this->userRepository->save($user);
 
         return new JsonResponse(['message' => 'User created'], JsonResponse::HTTP_CREATED);
     }
