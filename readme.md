@@ -57,3 +57,7 @@ Este proyecto utiliza Symfony y Docker para facilitar el desarrollo y despliegue
 3.  **Probar los endpoints:**
     
     Utiliza la colección importada en Postman para probar los diferentes endpoints de tu aplicación Symfony.
+
+## Descarga de archivos
+
+Puedes descargar el archivo [aquí](https://github.com/antoniojvila/project-symfony-crabi/blob/main/resource/Crabi.postman_collection.json).
