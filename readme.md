@@ -27,7 +27,7 @@ Este proyecto utiliza Symfony y Docker para facilitar el desarrollo y despliegue
     
 3.  **Acceder al contenedor de Symfony:**
     
-    Una vez que los contenedores estén en funcionamiento, accede al contenedor de Symfony (normalmente llamado `symfony-php-apache`con:
+    Una vez que los contenedores estén en funcionamiento, accede al contenedor de Symfony normalmente llamado `symfony-php-apache`con:
     
     `docker exec -it symfony-php-apache bash` 
     
