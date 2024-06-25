@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Entity;
-
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator\Constraints as AppAssert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -16,16 +17,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Email]
+    #[AppAssert\BlackListValidation]
     private ?string $email = null;
 
     #[ORM\Column]
-    private array $roles = [];
-
-    /**
-     * @var string The hashed password
-     */
-    #[ORM\Column]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 8)]
     private ?string $password = null;
+
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    private ?string $first_name = null;
+
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    private ?string $last_name = null;
+
+    #[ORM\Column(type: 'json')]
+    private array $roles = ['ROLE_USER'];
 
     public function getId(): ?int
     {
@@ -44,37 +55,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
+    public function getFirstName(): ?string
     {
-        return (string) $this->email;
+        return $this->first_name;
     }
 
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
+    public function setFirstName(string $first_name): static
     {
-        $roles = $this->roles;
-        $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
-    }
-
-    public function setRoles(array $roles): static
-    {
-        $this->roles = $roles;
+        $this->first_name = $first_name;
 
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
+    public function getLastName(): ?string
+    {
+        return $this->last_name;
+    }
+
+    public function setLastName(string $last_name): static
+    {
+        $this->last_name = $last_name;
+
+        return $this;
+    }
+
     public function getPassword(): string
     {
         return $this->password;
@@ -87,9 +91,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
+    public function getUserIdentifier(): string
+    {
+        return $this->email;
+    }
+
+    public function getRoles(): array
+    {
+        return $this->roles;
+    }
+
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+        return $this;
+    }
+
     public function eraseCredentials(): void
     {
     }

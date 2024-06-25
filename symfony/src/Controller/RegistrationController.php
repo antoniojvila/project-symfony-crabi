@@ -10,11 +10,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RegistrationController extends AbstractController
 {
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
-    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): JsonResponse
+    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -30,6 +31,19 @@ class RegistrationController extends AbstractController
                 $data['password']
             )
         );
+        $user->setFirstName($data['first_name']);
+        $user->setLastName($data['last_name']);
+
+        $errors = $validator->validate($user);
+
+        if (count($errors) > 0) {
+            $errorsArray = [];
+            foreach ($errors as $error) {
+                $errorsArray[] = $error->getMessage();
+            }
+
+            return new JsonResponse(['errors' => $errorsArray], JsonResponse::HTTP_BAD_REQUEST);
+        }
 
         $entityManager->persist($user);
         $entityManager->flush();
